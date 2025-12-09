@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.2.1617146986/drawing_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.1.1617146909/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.1.1617147326/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"></script>
     
     <style>
         * {
@@ -41,8 +42,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) scaleX(-1);
-            max-width: 90vw;
-            max-height: 90vh;
+            max-width: 95vw;
+            max-height: 95vh;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
@@ -78,14 +79,14 @@
             top: 50%;
             transform: translateY(-50%);
             background: rgba(255,255,255,0.9);
-            padding: 40px;
+            padding: 60px 80px;
             border-radius: 20px;
-            font-size: 28px;
+            font-size: 32px;
             font-weight: bold;
             text-align: center;
             transition: all 0.3s;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            min-width: 250px;
+            min-width: 350px;
         }
         
         #choice-left {
@@ -106,9 +107,20 @@
             animation: correctAnim 0.5s;
         }
         
+        .choice-box.wrong {
+            animation: wrongAnim 0.5s;
+            background: rgba(255,100,100,0.95) !important;
+        }
+        
         @keyframes correctAnim {
             0%, 100% { transform: translateY(-50%) scale(1); }
             50% { transform: translateY(-50%) scale(1.2); }
+        }
+        
+        @keyframes wrongAnim {
+            0%, 100% { transform: translateY(-50%) translateX(0); }
+            25% { transform: translateY(-50%) translateX(-10px); }
+            75% { transform: translateY(-50%) translateX(10px); }
         }
         
         #score {
@@ -124,55 +136,18 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.2);
         }
         
-        #result-screen {
+        #countdown {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-        }
-        
-        #result-content {
-            background: white;
-            padding: 60px;
-            border-radius: 30px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-        }
-        
-        #result-content h1 {
-            font-size: 48px;
-            color: #667eea;
-            margin-bottom: 30px;
-        }
-        
-        #result-content p {
-            font-size: 28px;
-            color: #333;
-            margin: 20px 0;
-        }
-        
-        #restart-btn {
-            margin-top: 40px;
-            padding: 20px 50px;
-            font-size: 24px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 120px;
             font-weight: bold;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: transform 0.3s;
+            color: rgba(255,255,255,0.3);
+            display: none;
         }
         
-        #restart-btn:hover {
-            transform: scale(1.05);
-        }
+
         
         .particle {
             position: absolute;
@@ -206,16 +181,10 @@
             <div id="choice-left" class="choice-box"></div>
             <div id="choice-right" class="choice-box"></div>
             <div id="score">スコア: 0/5</div>
+            <div id="countdown"></div>
         </div>
         
-        <div id="result-screen">
-            <div id="result-content">
-                <h1>🎉 おめでとうございます！</h1>
-                <p id="result-text"></p>
-                <p>ATCグリーンエコプラザには<br>もっとたくさんの環境にやさしい製品があります！</p>
-                <button id="restart-btn">もう一度挑戦</button>
-            </div>
-        </div>
+
     </div>
 
     <script type="module">
@@ -255,17 +224,23 @@
         let currentQuiz = 0;
         let score = 0;
         let canAnswer = false;
-        let leftBox = null;
-        let rightBox = null;
+        let leftTimer = null;
+        let rightTimer = null;
+        let leftCount = 0;
+        let rightCount = 0;
+        const HOLD_TIME = 2; // 2秒
+        let faceMesh = null;
+        let isFaceMode = false;
+        let restartTimer = null;
+        let restartCount = 0;
         
         // UI要素
         const questionEl = document.getElementById('question');
         const choiceLeftEl = document.getElementById('choice-left');
         const choiceRightEl = document.getElementById('choice-right');
         const scoreEl = document.getElementById('score');
-        const resultScreen = document.getElementById('result-screen');
-        const resultText = document.getElementById('result-text');
-        const restartBtn = document.getElementById('restart-btn');
+
+        const countdownEl = document.getElementById('countdown');
         
         // クイズ表示
         function displayQuiz() {
@@ -290,12 +265,13 @@
             const quiz = quizData[currentQuiz];
             const isCorrect = (isLeft && quiz.left.correct) || (!isLeft && quiz.right.correct);
             
+            const choiceEl = isLeft ? choiceLeftEl : choiceRightEl;
+            
             if (isCorrect) {
                 score++;
                 scoreEl.textContent = `スコア: ${score}/5`;
                 
                 // 正解エフェクト
-                const choiceEl = isLeft ? choiceLeftEl : choiceRightEl;
                 choiceEl.classList.add('correct');
                 createParticles();
                 
@@ -305,8 +281,11 @@
                     displayQuiz();
                 }, 1500);
             } else {
-                // 不正解
+                // 不正解エフェクト
+                choiceEl.classList.add('wrong');
+                
                 setTimeout(() => {
+                    choiceEl.classList.remove('wrong');
                     currentQuiz++;
                     displayQuiz();
                 }, 1000);
@@ -330,23 +309,26 @@
         
         // 結果表示
         function showResult() {
-            resultText.textContent = `あなたのスコア: ${score}/5`;
-            resultScreen.style.display = 'flex';
+            // クイズ終了、すぐに顔検出モード
+            questionEl.textContent = '🎉 クリア！';
+            choiceLeftEl.style.display = 'none';
+            choiceRightEl.style.display = 'none';
             
             if (score === 5) {
                 createParticles();
                 createParticles();
             }
+            
+            // 顔検出モードに切り替え
+            setTimeout(() => {
+                isFaceMode = true;
+                initFaceDetection();
+            }, 1000);
         }
         
-        // リスタート
-        restartBtn.addEventListener('click', () => {
-            currentQuiz = 0;
-            score = 0;
-            scoreEl.textContent = 'スコア: 0/5';
-            resultScreen.style.display = 'none';
-            displayQuiz();
-        });
+
+        
+
         
         // MediaPipe Hands
         function onResults(results) {
@@ -354,61 +336,176 @@
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
             
-            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            if (!isFaceMode && results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 for (const landmarks of results.multiHandLandmarks) {
                     drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 5});
                     drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 2});
                     
-                    // 人差し指の位置取得
-                    const fingerTip = landmarks[8];
+                    // 手全体の判定
                     const canvasRect = canvasElement.getBoundingClientRect();
-                    const fingerPos = {
-                        x: (1 - fingerTip.x) * canvasRect.width,
-                        y: fingerTip.y * canvasRect.height
-                    };
-                    
-                    // 左の選択肢との当たり判定
                     const leftRect = choiceLeftEl.getBoundingClientRect();
-                    const leftHit = fingerPos.x >= leftRect.left && fingerPos.x <= leftRect.right &&
-                                   fingerPos.y >= leftRect.top && fingerPos.y <= leftRect.bottom;
-                    
-                    // 右の選択肢との当たり判定
                     const rightRect = choiceRightEl.getBoundingClientRect();
-                    const rightHit = fingerPos.x >= rightRect.left && fingerPos.x <= rightRect.right &&
-                                    fingerPos.y >= rightRect.top && fingerPos.y <= rightRect.bottom;
                     
-                    // ホバーエフェクト
-                    if (leftHit) {
-                        choiceLeftEl.classList.add('hover');
-                        if (!leftBox) {
-                            leftBox = true;
-                            setTimeout(() => {
-                                if (leftBox && canAnswer) answerQuiz(true);
-                                leftBox = false;
-                            }, 500);
+                    let leftHit = false;
+                    let rightHit = false;
+                    
+                    const checkPoints = [0, 4, 8, 12, 16, 20];
+                    
+                    for (const pointIndex of checkPoints) {
+                        const point = landmarks[pointIndex];
+                        const fingerPos = {
+                            x: (1 - point.x) * canvasRect.width,
+                            y: point.y * canvasRect.height
+                        };
+                        
+                        if (fingerPos.x >= leftRect.left && fingerPos.x <= leftRect.right &&
+                            fingerPos.y >= leftRect.top && fingerPos.y <= leftRect.bottom) {
+                            leftHit = true;
                         }
-                    } else {
-                        choiceLeftEl.classList.remove('hover');
-                        leftBox = false;
+                        
+                        if (fingerPos.x >= rightRect.left && fingerPos.x <= rightRect.right &&
+                            fingerPos.y >= rightRect.top && fingerPos.y <= rightRect.bottom) {
+                            rightHit = true;
+                        }
                     }
                     
-                    if (rightHit) {
-                        choiceRightEl.classList.add('hover');
-                        if (!rightBox) {
-                            rightBox = true;
-                            setTimeout(() => {
-                                if (rightBox && canAnswer) answerQuiz(false);
-                                rightBox = false;
-                            }, 500);
+                    // 左の選択肢
+                    if (leftHit && canAnswer) {
+                        choiceLeftEl.classList.add('hover');
+                        if (!leftTimer) {
+                            leftCount = 0;
+                            leftTimer = setInterval(() => {
+                                leftCount++;
+                                const remaining = HOLD_TIME - leftCount;
+                                countdownEl.textContent = remaining;
+                                countdownEl.style.display = 'block';
+                                
+                                if (leftCount >= HOLD_TIME) {
+                                    clearInterval(leftTimer);
+                                    leftTimer = null;
+                                    countdownEl.style.display = 'none';
+                                    answerQuiz(true);
+                                }
+                            }, 1000);
                         }
-                    } else {
+                    } else if (!leftTimer) {
+                        choiceLeftEl.classList.remove('hover');
+                    }
+                    
+                    if (leftTimer && !leftHit) {
+                        clearInterval(leftTimer);
+                        leftTimer = null;
+                        leftCount = 0;
+                        countdownEl.style.display = 'none';
+                        choiceLeftEl.classList.remove('hover');
+                    }
+                    
+                    // 右の選択肢
+                    if (rightHit && canAnswer) {
+                        choiceRightEl.classList.add('hover');
+                        if (!rightTimer) {
+                            rightCount = 0;
+                            rightTimer = setInterval(() => {
+                                rightCount++;
+                                const remaining = HOLD_TIME - rightCount;
+                                countdownEl.textContent = remaining;
+                                countdownEl.style.display = 'block';
+                                
+                                if (rightCount >= HOLD_TIME) {
+                                    clearInterval(rightTimer);
+                                    rightTimer = null;
+                                    countdownEl.style.display = 'none';
+                                    answerQuiz(false);
+                                }
+                            }, 1000);
+                        }
+                    } else if (!rightTimer) {
                         choiceRightEl.classList.remove('hover');
-                        rightBox = false;
+                    }
+                    
+                    if (rightTimer && !rightHit) {
+                        clearInterval(rightTimer);
+                        rightTimer = null;
+                        rightCount = 0;
+                        countdownEl.style.display = 'none';
+                        choiceRightEl.classList.remove('hover');
+                    }
+                }
+            }
+            
+
+            
+            canvasCtx.restore();
+        }
+        
+        // 顔検出初期化
+        function initFaceDetection() {
+            faceMesh = new FaceMesh({
+                locateFile: (file) => {
+                    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/${file}`;
+                }
+            });
+            
+            faceMesh.setOptions({
+                maxNumFaces: 1,
+                refineLandmarks: true,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+            
+            faceMesh.onResults(onFaceResults);
+        }
+        
+        // 顔検出結果処理
+        function onFaceResults(results) {
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+            
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                for (const landmarks of results.multiFaceLandmarks) {
+                    // 星エフェクト
+                    const leftEye = landmarks[33];
+                    const rightEye = landmarks[263];
+                    const nose = landmarks[1];
+                    
+                    drawStar(canvasCtx, (1 - leftEye.x) * canvasElement.width, leftEye.y * canvasElement.height, 30, '#FFD700');
+                    drawStar(canvasCtx, (1 - rightEye.x) * canvasElement.width, rightEye.y * canvasElement.height, 30, '#FFD700');
+                    drawStar(canvasCtx, (1 - nose.x) * canvasElement.width, nose.y * canvasElement.height, 40, '#FF69B4');
+                    
+                    // パーティクル生成
+                    if (Math.random() > 0.7) {
+                        createParticles();
                     }
                 }
             }
             
             canvasCtx.restore();
+        }
+        
+        // 星を描画
+        function drawStar(ctx, cx, cy, size, color) {
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = color;
+            
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
+                const x = cx + Math.cos(angle) * size;
+                const y = cy + Math.sin(angle) * size;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+                
+                const innerAngle = angle + Math.PI / 5;
+                const innerX = cx + Math.cos(innerAngle) * (size / 2);
+                const innerY = cy + Math.sin(innerAngle) * (size / 2);
+                ctx.lineTo(innerX, innerY);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
         }
         
         const hands = new Hands({
@@ -418,7 +515,7 @@
         });
         
         hands.setOptions({
-            maxNumHands: 1,
+            maxNumHands: 2,
             minDetectionConfidence: 0.7,
             minTrackingConfidence: 0.5
         });
@@ -427,7 +524,11 @@
         
         const camera = new Camera(videoElement, {
             onFrame: async () => {
-                await hands.send({image: videoElement});
+                if (isFaceMode && faceMesh) {
+                    await faceMesh.send({image: videoElement});
+                } else {
+                    await hands.send({image: videoElement});
+                }
             },
             width: 1280,
             height: 720
