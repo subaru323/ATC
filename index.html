@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>ATC エコクイズ - 手で答える環境クイズ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- MediaPipe -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.2.1617146986/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.1.1617146909/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.1.1617147326/hands.js" crossorigin="anonymous"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Hiragino Sans', 'メイリオ', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+        }
+        
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .input_video {
+            display: none;
+        }
+        
+        .output_canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scaleX(-1);
+            max-width: 90vw;
+            max-height: 90vh;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        #quiz-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        #question {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.95);
+            padding: 30px 50px;
+            border-radius: 20px;
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 80%;
+        }
+        
+        .choice-box {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.9);
+            padding: 40px;
+            border-radius: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-width: 250px;
+        }
+        
+        #choice-left {
+            left: 10%;
+        }
+        
+        #choice-right {
+            right: 10%;
+        }
+        
+        .choice-box.hover {
+            transform: translateY(-50%) scale(1.1);
+            background: rgba(144,238,144,0.95);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .choice-box.correct {
+            animation: correctAnim 0.5s;
+        }
+        
+        @keyframes correctAnim {
+            0%, 100% { transform: translateY(-50%) scale(1); }
+            50% { transform: translateY(-50%) scale(1.2); }
+        }
+        
+        #score {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.95);
+            padding: 20px 30px;
+            border-radius: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        
+        #result-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        #result-content {
+            background: white;
+            padding: 60px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        
+        #result-content h1 {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 30px;
+        }
+        
+        #result-content p {
+            font-size: 28px;
+            color: #333;
+            margin: 20px 0;
+        }
+        
+        #restart-btn {
+            margin-top: 40px;
+            padding: 20px 50px;
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        #restart-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #4CAF50;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFall 2s linear;
+        }
+        
+        @keyframes particleFall {
+            from {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <video class="input_video"></video>
+        <canvas class="output_canvas" width="1280" height="720"></canvas>
+        
+        <div id="quiz-overlay">
+            <div id="question">カメラを許可してください</div>
+            <div id="choice-left" class="choice-box"></div>
+            <div id="choice-right" class="choice-box"></div>
+            <div id="score">スコア: 0/5</div>
+        </div>
+        
+        <div id="result-screen">
+            <div id="result-content">
+                <h1>🎉 おめでとうございます！</h1>
+                <p id="result-text"></p>
+                <p>ATCグリーンエコプラザには<br>もっとたくさんの環境にやさしい製品があります！</p>
+                <button id="restart-btn">もう一度挑戦</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        const videoElement = document.querySelector('.input_video');
+        const canvasElement = document.querySelector('.output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        
+        // クイズデータ
+        const quizData = [
+            {
+                question: "お買い物、どっちがエコ？",
+                left: { text: "エコバッグ", correct: true, emoji: "🛍️" },
+                right: { text: "レジ袋", correct: false, emoji: "🛒" }
+            },
+            {
+                question: "電気、どっちが地球にやさしい？",
+                left: { text: "太陽光発電", correct: true, emoji: "☀️" },
+                right: { text: "火力発電", correct: false, emoji: "🏭" }
+            },
+            {
+                question: "飲み物、どっちがエコ？",
+                left: { text: "マイボトル", correct: true, emoji: "🍶" },
+                right: { text: "ペットボトル", correct: false, emoji: "🥤" }
+            },
+            {
+                question: "移動、どっちが環境にいい？",
+                left: { text: "自転車", correct: true, emoji: "🚲" },
+                right: { text: "自動車", correct: false, emoji: "🚗" }
+            },
+            {
+                question: "ゴミ、どっちが大切？",
+                left: { text: "リサイクル", correct: true, emoji: "♻️" },
+                right: { text: "そのまま捨てる", correct: false, emoji: "🗑️" }
+            }
+        ];
+        
+        let currentQuiz = 0;
+        let score = 0;
+        let canAnswer = false;
+        let leftBox = null;
+        let rightBox = null;
+        
+        // UI要素
+        const questionEl = document.getElementById('question');
+        const choiceLeftEl = document.getElementById('choice-left');
+        const choiceRightEl = document.getElementById('choice-right');
+        const scoreEl = document.getElementById('score');
+        const resultScreen = document.getElementById('result-screen');
+        const resultText = document.getElementById('result-text');
+        const restartBtn = document.getElementById('restart-btn');
+        
+        // クイズ表示
+        function displayQuiz() {
+            if (currentQuiz >= quizData.length) {
+                showResult();
+                return;
+            }
+            
+            const quiz = quizData[currentQuiz];
+            questionEl.textContent = quiz.question;
+            choiceLeftEl.innerHTML = `${quiz.left.emoji}<br>${quiz.left.text}`;
+            choiceRightEl.innerHTML = `${quiz.right.emoji}<br>${quiz.right.text}`;
+            
+            canAnswer = true;
+        }
+        
+        // 正解処理
+        function answerQuiz(isLeft) {
+            if (!canAnswer) return;
+            canAnswer = false;
+            
+            const quiz = quizData[currentQuiz];
+            const isCorrect = (isLeft && quiz.left.correct) || (!isLeft && quiz.right.correct);
+            
+            if (isCorrect) {
+                score++;
+                scoreEl.textContent = `スコア: ${score}/5`;
+                
+                // 正解エフェクト
+                const choiceEl = isLeft ? choiceLeftEl : choiceRightEl;
+                choiceEl.classList.add('correct');
+                createParticles();
+                
+                setTimeout(() => {
+                    choiceEl.classList.remove('correct');
+                    currentQuiz++;
+                    displayQuiz();
+                }, 1500);
+            } else {
+                // 不正解
+                setTimeout(() => {
+                    currentQuiz++;
+                    displayQuiz();
+                }, 1000);
+            }
+        }
+        
+        // パーティクル生成
+        function createParticles() {
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.animationDelay = Math.random() * 0.5 + 's';
+                    document.getElementById('quiz-overlay').appendChild(particle);
+                    
+                    setTimeout(() => particle.remove(), 2000);
+                }, i * 20);
+            }
+        }
+        
+        // 結果表示
+        function showResult() {
+            resultText.textContent = `あなたのスコア: ${score}/5`;
+            resultScreen.style.display = 'flex';
+            
+            if (score === 5) {
+                createParticles();
+                createParticles();
+            }
+        }
+        
+        // リスタート
+        restartBtn.addEventListener('click', () => {
+            currentQuiz = 0;
+            score = 0;
+            scoreEl.textContent = 'スコア: 0/5';
+            resultScreen.style.display = 'none';
+            displayQuiz();
+        });
+        
+        // MediaPipe Hands
+        function onResults(results) {
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+            
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                for (const landmarks of results.multiHandLandmarks) {
+                    drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 5});
+                    drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 2});
+                    
+                    // 人差し指の位置取得
+                    const fingerTip = landmarks[8];
+                    const canvasRect = canvasElement.getBoundingClientRect();
+                    const fingerPos = {
+                        x: (1 - fingerTip.x) * canvasRect.width,
+                        y: fingerTip.y * canvasRect.height
+                    };
+                    
+                    // 左の選択肢との当たり判定
+                    const leftRect = choiceLeftEl.getBoundingClientRect();
+                    const leftHit = fingerPos.x >= leftRect.left && fingerPos.x <= leftRect.right &&
+                                   fingerPos.y >= leftRect.top && fingerPos.y <= leftRect.bottom;
+                    
+                    // 右の選択肢との当たり判定
+                    const rightRect = choiceRightEl.getBoundingClientRect();
+                    const rightHit = fingerPos.x >= rightRect.left && fingerPos.x <= rightRect.right &&
+                                    fingerPos.y >= rightRect.top && fingerPos.y <= rightRect.bottom;
+                    
+                    // ホバーエフェクト
+                    if (leftHit) {
+                        choiceLeftEl.classList.add('hover');
+                        if (!leftBox) {
+                            leftBox = true;
+                            setTimeout(() => {
+                                if (leftBox && canAnswer) answerQuiz(true);
+                                leftBox = false;
+                            }, 500);
+                        }
+                    } else {
+                        choiceLeftEl.classList.remove('hover');
+                        leftBox = false;
+                    }
+                    
+                    if (rightHit) {
+                        choiceRightEl.classList.add('hover');
+                        if (!rightBox) {
+                            rightBox = true;
+                            setTimeout(() => {
+                                if (rightBox && canAnswer) answerQuiz(false);
+                                rightBox = false;
+                            }, 500);
+                        }
+                    } else {
+                        choiceRightEl.classList.remove('hover');
+                        rightBox = false;
+                    }
+                }
+            }
+            
+            canvasCtx.restore();
+        }
+        
+        const hands = new Hands({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.1.1617147326/${file}`;
+            }
+        });
+        
+        hands.setOptions({
+            maxNumHands: 1,
+            minDetectionConfidence: 0.7,
+            minTrackingConfidence: 0.5
+        });
+        
+        hands.onResults(onResults);
+        
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({image: videoElement});
+            },
+            width: 1280,
+            height: 720
+        });
+        
+        camera.start().then(() => {
+            displayQuiz();
+        });
+    </script>
+</body>
+</html>
