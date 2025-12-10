@@ -336,12 +336,13 @@
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
             
-            if (!isFaceMode && results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 for (const landmarks of results.multiHandLandmarks) {
                     drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 5});
                     drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 2});
                     
-                    // 手全体の判定
+                    // クイズモード時のみ判定処理
+                    if (!isFaceMode) {
                     const canvasRect = canvasElement.getBoundingClientRect();
                     const leftRect = choiceLeftEl.getBoundingClientRect();
                     const rightRect = choiceRightEl.getBoundingClientRect();
@@ -430,6 +431,7 @@
                         countdownEl.style.display = 'none';
                         choiceRightEl.classList.remove('hover');
                     }
+                    }
                 }
             }
             
@@ -464,49 +466,19 @@
             
             if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
                 for (const landmarks of results.multiFaceLandmarks) {
-                    // 星エフェクト
-                    const leftEye = landmarks[33];
-                    const rightEye = landmarks[263];
-                    const nose = landmarks[1];
-                    
-                    drawStar(canvasCtx, (1 - leftEye.x) * canvasElement.width, leftEye.y * canvasElement.height, 30, '#FFD700');
-                    drawStar(canvasCtx, (1 - rightEye.x) * canvasElement.width, rightEye.y * canvasElement.height, 30, '#FFD700');
-                    drawStar(canvasCtx, (1 - nose.x) * canvasElement.width, nose.y * canvasElement.height, 40, '#FF69B4');
-                    
-                    // パーティクル生成
-                    if (Math.random() > 0.7) {
-                        createParticles();
-                    }
+                    // 顔のランドマークを描画
+                    drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, {color: '#C0C0C070', lineWidth: 1});
+                    drawConnectors(canvasCtx, landmarks, FACEMESH_RIGHT_EYE, {color: '#FF3030'});
+                    drawConnectors(canvasCtx, landmarks, FACEMESH_LEFT_EYE, {color: '#30FF30'});
+                    drawConnectors(canvasCtx, landmarks, FACEMESH_FACE_OVAL, {color: '#E0E0E0'});
+                    drawConnectors(canvasCtx, landmarks, FACEMESH_LIPS, {color: '#E0E0E0'});
                 }
             }
             
             canvasCtx.restore();
         }
         
-        // 星を描画
-        function drawStar(ctx, cx, cy, size, color) {
-            ctx.save();
-            ctx.fillStyle = color;
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = color;
-            
-            ctx.beginPath();
-            for (let i = 0; i < 5; i++) {
-                const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
-                const x = cx + Math.cos(angle) * size;
-                const y = cy + Math.sin(angle) * size;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-                
-                const innerAngle = angle + Math.PI / 5;
-                const innerX = cx + Math.cos(innerAngle) * (size / 2);
-                const innerY = cy + Math.sin(innerAngle) * (size / 2);
-                ctx.lineTo(innerX, innerY);
-            }
-            ctx.closePath();
-            ctx.fill();
-            ctx.restore();
-        }
+
         
         const hands = new Hands({
             locateFile: (file) => {
