@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="utf-8">
-    <title>ATC エコクイズ - 手で答える環境クイズ</title>
+    <title>ATC エコプラザ体験</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- MediaPipe -->
@@ -48,7 +48,7 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         
-        #quiz-overlay {
+        #ui-overlay {
             position: absolute;
             top: 0;
             left: 0;
@@ -58,20 +58,266 @@
             z-index: 10;
         }
         
+        #title {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.95);
+            padding: 15px 40px;
+            border-radius: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 5;
+        }
+        
+        .menu-button {
+            position: absolute;
+            background: rgba(255,255,255,0.9);
+            padding: 40px 60px;
+            border-radius: 20px;
+            font-size: 32px;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-width: 280px;
+        }
+        
+        #btn-quiz {
+            top: 50%;
+            left: 15%;
+            transform: translate(-50%, -50%);
+        }
+        
+        #btn-photo {
+            top: 12%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        #btn-learn {
+            top: 50%;
+            right: 15%;
+            left: auto;
+            transform: translate(50%, -50%);
+        }
+        
+        .menu-button.hover {
+            transform: translate(-50%, -50%) scale(1.1);
+            background: rgba(144,238,144,0.95);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        #countdown {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 150px;
+            font-weight: bold;
+            color: rgba(255,255,255,0.9);
+            text-shadow: 0 0 30px rgba(0,0,0,0.8);
+            display: none;
+            z-index: 100;
+        }
+        
+        /* 知ろう！モード用 */
+        #learn-screen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        #learn-screen.active {
+            pointer-events: auto;
+        }
+        
+        .sdg-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80vw;
+            height: 60vh;
+            transform: translate(-50%, -50%);
+        }
+        
+        .sdg-item {
+            position: absolute;
+            background: rgba(255,255,255,0.95);
+            padding: 20px 30px;
+            border-radius: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            min-width: 200px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .sdg-item.hover {
+            transform: scale(1.2);
+            background: rgba(144,238,144,0.95);
+            z-index: 10;
+        }
+        
+        #learn-back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            pointer-events: auto;
+            cursor: pointer;
+            z-index: 20;
+        }
+        
+        #learn-detail {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.95);
+            padding: 40px 60px;
+            border-radius: 30px;
+            max-width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            display: none;
+            z-index: 15;
+        }
+        
+        #learn-detail h2 {
+            font-size: 32px;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        #learn-detail p {
+            font-size: 20px;
+            line-height: 1.8;
+            color: #333;
+        }
+        
+        #close-detail-btn {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+        
+        /* 撮影モード用 */
+        #photo-screen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        #photo-screen.active {
+            pointer-events: auto;
+        }
+        
+        .effect-button {
+            position: absolute;
+            right: 30px;
+            background: rgba(255,255,255,0.9);
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-size: 24px;
+            text-align: center;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            min-width: 100px;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        
+        #effect-sunglasses { top: 20%; }
+        #effect-cat-ears { top: 30%; }
+        #effect-flower { top: 40%; }
+        #effect-sparkle { top: 50%; }
+        #effect-heart { top: 60%; }
+        #effect-rainbow { top: 70%; }
+        
+        .effect-button.active {
+            background: rgba(144,238,144,0.95);
+            transform: scale(1.1);
+        }
+        
+        .effect-button.hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        
+        #capture-btn {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.95);
+            padding: 20px 40px;
+            border-radius: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            min-width: 200px;
+            text-align: center;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        
+        #back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        
         #question {
             position: absolute;
             top: 50px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(255,255,255,0.95);
-            padding: 30px 50px;
+            padding: 20px 30px;
             border-radius: 20px;
-            font-size: 32px;
+            font-size: 28px;
             font-weight: bold;
             color: #333;
             text-align: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            max-width: 80%;
+            max-width: 90%;
         }
         
         .choice-box {
@@ -136,18 +382,17 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.2);
         }
         
-        #countdown {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 120px;
-            font-weight: bold;
-            color: rgba(255,255,255,0.3);
+        /* クイズ画面用 */
+        #quiz-screen {
             display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
         }
-        
-
         
         .particle {
             position: absolute;
@@ -176,21 +421,112 @@
         <video class="input_video"></video>
         <canvas class="output_canvas" width="1280" height="720"></canvas>
         
-        <div id="quiz-overlay">
+        <!-- ホーム画面 -->
+        <div id="ui-overlay">
+            <div id="title">ATCエコプラザ体験</div>
+            <div id="btn-quiz" class="menu-button">🎮 クイズ</div>
+            <div id="btn-photo" class="menu-button">📷 撮影</div>
+            <div id="btn-learn" class="menu-button">📚 知ろう！</div>
+        </div>
+        
+        <!-- カウントダウン（全モード共通） -->
+        <div id="countdown"></div>
+        
+        <!-- クイズ画面 -->
+        <div id="quiz-screen">
             <div id="question">カメラを許可してください</div>
             <div id="choice-left" class="choice-box"></div>
             <div id="choice-right" class="choice-box"></div>
             <div id="score">スコア: 0/5</div>
-            <div id="countdown"></div>
         </div>
         
-
+        <!-- 知ろう！画面 -->
+        <div id="learn-screen">
+            <div id="learn-back-btn" class="menu-button">⬅️ 戻る</div>
+            <div class="sdg-circle" id="sdg-circle">
+                <div class="sdg-item" data-sdg="12">🌍 SDG12<br>つくる責任</div>
+                <div class="sdg-item" data-sdg="7">⚡ SDG7<br>クリーンエネルギー</div>
+                <div class="sdg-item" data-sdg="13">🌡️ SDG13<br>気候変動対策</div>
+                <div class="sdg-item" data-sdg="14">🐠 SDG14<br>海の豊かさ</div>
+                <div class="sdg-item" data-sdg="15">🌳 SDG15<br>陸の豊かさ</div>
+            </div>
+            <div id="learn-detail">
+                <h2 id="detail-title"></h2>
+                <p id="detail-content"></p>
+                <button id="close-detail-btn">戻る</button>
+            </div>
+        </div>
+        
+        <!-- 撮影画面 -->
+        <div id="photo-screen">
+            <div id="back-btn" class="menu-button">⬅️ 戻る</div>
+            <div id="effect-sunglasses" class="effect-button">😎 サングラス</div>
+            <div id="effect-cat-ears" class="effect-button">😺 猫耳</div>
+            <div id="effect-flower" class="effect-button">🌸 花冠</div>
+            <div id="effect-sparkle" class="effect-button">✨ キラキラ</div>
+            <div id="effect-heart" class="effect-button">💕 ハート</div>
+            <div id="effect-rainbow" class="effect-button">🌈 虹</div>
+            <div id="capture-btn" class="menu-button">📷 撮影</div>
+        </div>
     </div>
 
     <script type="module">
         const videoElement = document.querySelector('.input_video');
         const canvasElement = document.querySelector('.output_canvas');
         const canvasCtx = canvasElement.getContext('2d');
+        
+        // モード管理
+        let currentMode = 'home'; // home, quiz, photo, learn
+        
+        // UI要素
+        const uiOverlay = document.getElementById('ui-overlay');
+        const quizScreen = document.getElementById('quiz-screen');
+        const photoScreen = document.getElementById('photo-screen');
+        const btnQuiz = document.getElementById('btn-quiz');
+        const btnPhoto = document.getElementById('btn-photo');
+        const btnLearn = document.getElementById('btn-learn');
+        const countdownEl = document.getElementById('countdown');
+        
+        // 知ろう！モード要素
+        const learnScreen = document.getElementById('learn-screen');
+        const learnBackBtn = document.getElementById('learn-back-btn');
+        const sdgCircle = document.getElementById('sdg-circle');
+        const sdgItems = document.querySelectorAll('.sdg-item');
+        const learnDetail = document.getElementById('learn-detail');
+        const detailTitle = document.getElementById('detail-title');
+        const detailContent = document.getElementById('detail-content');
+        const closeDetailBtn = document.getElementById('close-detail-btn');
+        
+        let rotationAngle = 0;
+        let isRotating = true;
+        let rotationInterval = null;
+        let selectedSDG = null;
+        let selectTimer = null;
+        let selectCount = 0;
+        const backBtn = document.getElementById('back-btn');
+        const captureBtn = document.getElementById('capture-btn');
+        const effectButtons = {
+            sunglasses: document.getElementById('effect-sunglasses'),
+            catEars: document.getElementById('effect-cat-ears'),
+            flower: document.getElementById('effect-flower'),
+            sparkle: document.getElementById('effect-sparkle'),
+            heart: document.getElementById('effect-heart'),
+            rainbow: document.getElementById('effect-rainbow')
+        };
+        
+        let activeEffect = null;
+        let captureTimer = null;
+        let captureCount = 0;
+        let captureStartTimer = null;
+        let captureStartCount = 0;
+        let isCapturing = false;
+        const CAPTURE_TIME = 10;
+        
+        // クイズ用
+        const questionEl = document.getElementById('question');
+        const choiceLeftEl = document.getElementById('choice-left');
+        const choiceRightEl = document.getElementById('choice-right');
+        const scoreEl = document.getElementById('score');
         
         // クイズデータ
         const quizData = [
@@ -221,26 +557,276 @@
             }
         ];
         
-        let currentQuiz = 0;
+        // SDGsデータ
+        const sdgData = {
+            12: {
+                title: "SDG12: つくる責任 つかう責任",
+                content: "ATCグリーンエコプラザでは、持続可能な生産と消費を推進しています。環境に優しい製品やリサイクル素材を使用した商品を展示し、訪れる人々に「責任ある消費」の大切さを伝えています。ごみを減らし、資源を大切に使うことが未来の地球を守ります。"
+            },
+            7: {
+                title: "SDG7: エネルギーをみんなに そしてクリーンに",
+                content: "太陽光発電や風力発電などの再生可能エネルギーを紹介しています。エコプラザでは、クリーンエネルギーを使用した製品や、省エネ技術の展示を通じて、持続可能なエネルギー社会の実現を目指しています。"
+            },
+            13: {
+                title: "SDG13: 気候変動に具体的な対策を",
+                content: "地球温暖化を防ぎ、気候変動の影響を減らすための取り組みを紹介しています。CO2削減の重要性や、日常生活でできる節電・節水などの具体的なアクションを学ぶことができます。"
+            },
+            14: {
+                title: "SDG14: 海の豊かさを守ろう",
+                content: "海洋プラスチック問題や海洋汚染の深刻さを伝え、海を守るための行動を提案しています。大阪湾に面したATCでは、地域の海を守る取り組みや、プラスチック代替品の使用を推進しています。"
+            },
+            15: {
+                title: "SDG15: 陸の豊かさも守ろう",
+                content: "森林保護、生物多様性の保全、緑化推進など、陸の豊かさを守る取り組みを紹介しています。木材認証制度やエコマーク付き製品など、環境に優しい選択を学ぶことができます。"
+            }
+        };
         let score = 0;
         let canAnswer = false;
         let leftTimer = null;
         let rightTimer = null;
         let leftCount = 0;
         let rightCount = 0;
-        const HOLD_TIME = 2; // 2秒
+        const HOLD_TIME = 2;
         let faceMesh = null;
-        let isFaceMode = false;
-        let restartTimer = null;
-        let restartCount = 0;
         
-        // UI要素
-        const questionEl = document.getElementById('question');
-        const choiceLeftEl = document.getElementById('choice-left');
-        const choiceRightEl = document.getElementById('choice-right');
-        const scoreEl = document.getElementById('score');
-
-        const countdownEl = document.getElementById('countdown');
+        // ホームボタンタイマー
+        let btnTimers = {
+            quiz: null,
+            photo: null,
+            learn: null
+        };
+        let btnCounts = {
+            quiz: 0,
+            photo: 0,
+            learn: 0
+        };
+        
+        // モード切替
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            if (mode === 'home') {
+                uiOverlay.style.display = 'block';
+                quizScreen.style.display = 'none';
+                photoScreen.style.display = 'none';
+                photoScreen.classList.remove('active');
+                learnScreen.style.display = 'none';
+                learnScreen.classList.remove('active');
+                stopRotation();
+            } else if (mode === 'quiz') {
+                uiOverlay.style.display = 'none';
+                quizScreen.style.display = 'block';
+                photoScreen.style.display = 'none';
+                photoScreen.classList.remove('active');
+                learnScreen.style.display = 'none';
+                learnScreen.classList.remove('active');
+                currentQuiz = 0;
+                score = 0;
+                scoreEl.textContent = 'スコア: 0/5';
+                displayQuiz();
+            } else if (mode === 'photo') {
+                uiOverlay.style.display = 'none';
+                quizScreen.style.display = 'none';
+                photoScreen.style.display = 'block';
+                photoScreen.classList.add('active');
+                learnScreen.style.display = 'none';
+                learnScreen.classList.remove('active');
+                activeEffect = null;
+                initFaceDetection();
+            } else if (mode === 'learn') {
+                uiOverlay.style.display = 'none';
+                quizScreen.style.display = 'none';
+                photoScreen.style.display = 'none';
+                photoScreen.classList.remove('active');
+                learnScreen.style.display = 'block';
+                learnScreen.classList.add('active');
+                learnDetail.style.display = 'none';
+                initSDGCircle();
+                startRotation();
+            }
+        }
+        
+        // SDG項目を円形に配置
+        function initSDGCircle() {
+            const items = Array.from(sdgItems);
+            const count = items.length;
+            const radiusX = sdgCircle.offsetWidth / 2 - 100;
+            const radiusY = sdgCircle.offsetHeight / 2 - 50;
+            
+            items.forEach((item, index) => {
+                const angle = (Math.PI * 2 * index) / count;
+                const x = Math.cos(angle) * radiusX;
+                const y = Math.sin(angle) * radiusY;
+                
+                item.style.left = `calc(50% + ${x}px)`;
+                item.style.top = `calc(50% + ${y}px)`;
+                item.style.transform = 'translate(-50%, -50%)';
+            });
+        }
+        
+        // 回転開始
+        function startRotation() {
+            isRotating = true;
+            rotationAngle = 0;
+            if (rotationInterval) clearInterval(rotationInterval);
+            
+            rotationInterval = setInterval(() => {
+                if (isRotating) {
+                    rotationAngle += 0.5;
+                    updateSDGPositions();
+                }
+            }, 30);
+        }
+        
+        // 回転停止
+        function stopRotation() {
+            if (rotationInterval) {
+                clearInterval(rotationInterval);
+                rotationInterval = null;
+            }
+            isRotating = false;
+        }
+        
+        // SDG位置更新
+        function updateSDGPositions() {
+            const items = Array.from(sdgItems);
+            const count = items.length;
+            const radiusX = sdgCircle.offsetWidth / 2 - 100;
+            const radiusY = sdgCircle.offsetHeight / 2 - 50;
+            
+            items.forEach((item, index) => {
+                const baseAngle = (Math.PI * 2 * index) / count;
+                const angle = baseAngle + (rotationAngle * Math.PI / 180);
+                const x = Math.cos(angle) * radiusX;
+                const y = Math.sin(angle) * radiusY;
+                
+                item.style.left = `calc(50% + ${x}px)`;
+                item.style.top = `calc(50% + ${y}px)`;
+            });
+        }
+        function checkHomeButtons(landmarks) {
+            if (currentMode !== 'home') return;
+            
+            const canvasRect = canvasElement.getBoundingClientRect();
+            const quizRect = btnQuiz.getBoundingClientRect();
+            const photoRect = btnPhoto.getBoundingClientRect();
+            const learnRect = btnLearn.getBoundingClientRect();
+            
+            const checkPoints = [0, 4, 8, 12, 16, 20];
+            let quizHit = false;
+            let photoHit = false;
+            let learnHit = false;
+            
+            for (const pointIndex of checkPoints) {
+                const point = landmarks[pointIndex];
+                const fingerPos = {
+                    x: canvasRect.left + (1 - point.x) * canvasRect.width,
+                    y: canvasRect.top + point.y * canvasRect.height
+                };
+                
+                if (fingerPos.x >= quizRect.left && fingerPos.x <= quizRect.right &&
+                    fingerPos.y >= quizRect.top && fingerPos.y <= quizRect.bottom) {
+                    quizHit = true;
+                }
+                
+                if (fingerPos.x >= photoRect.left && fingerPos.x <= photoRect.right &&
+                    fingerPos.y >= photoRect.top && fingerPos.y <= photoRect.bottom) {
+                    photoHit = true;
+                }
+                
+                if (fingerPos.x >= learnRect.left && fingerPos.x <= learnRect.right &&
+                    fingerPos.y >= learnRect.top && fingerPos.y <= learnRect.bottom) {
+                    learnHit = true;
+                }
+            }
+            
+            // クイズボタン
+            if (quizHit) {
+                btnQuiz.classList.add('hover');
+                if (!btnTimers.quiz) {
+                    btnCounts.quiz = 0;
+                    btnTimers.quiz = setInterval(() => {
+                        btnCounts.quiz++;
+                        const remaining = HOLD_TIME - btnCounts.quiz;
+                        countdownEl.textContent = remaining;
+                        countdownEl.style.display = 'block';
+                        
+                        if (btnCounts.quiz >= HOLD_TIME) {
+                            clearInterval(btnTimers.quiz);
+                            btnTimers.quiz = null;
+                            countdownEl.style.display = 'none';
+                            switchMode('quiz');
+                        }
+                    }, 1000);
+                }
+            } else {
+                btnQuiz.classList.remove('hover');
+                if (btnTimers.quiz) {
+                    clearInterval(btnTimers.quiz);
+                    btnTimers.quiz = null;
+                    btnCounts.quiz = 0;
+                    countdownEl.style.display = 'none';
+                }
+            }
+            
+            // 撮影ボタン
+            if (photoHit) {
+                btnPhoto.classList.add('hover');
+                if (!btnTimers.photo) {
+                    btnCounts.photo = 0;
+                    btnTimers.photo = setInterval(() => {
+                        btnCounts.photo++;
+                        const remaining = HOLD_TIME - btnCounts.photo;
+                        countdownEl.textContent = remaining;
+                        countdownEl.style.display = 'block';
+                        
+                        if (btnCounts.photo >= HOLD_TIME) {
+                            clearInterval(btnTimers.photo);
+                            btnTimers.photo = null;
+                            countdownEl.style.display = 'none';
+                            switchMode('photo');
+                        }
+                    }, 1000);
+                }
+            } else {
+                btnPhoto.classList.remove('hover');
+                if (btnTimers.photo) {
+                    clearInterval(btnTimers.photo);
+                    btnTimers.photo = null;
+                    btnCounts.photo = 0;
+                    countdownEl.style.display = 'none';
+                }
+            }
+            
+            // 知ろう！ボタン
+            if (learnHit) {
+                btnLearn.classList.add('hover');
+                if (!btnTimers.learn) {
+                    btnCounts.learn = 0;
+                    btnTimers.learn = setInterval(() => {
+                        btnCounts.learn++;
+                        const remaining = HOLD_TIME - btnCounts.learn;
+                        countdownEl.textContent = remaining;
+                        countdownEl.style.display = 'block';
+                        
+                        if (btnCounts.learn >= HOLD_TIME) {
+                            clearInterval(btnTimers.learn);
+                            btnTimers.learn = null;
+                            countdownEl.style.display = 'none';
+                            switchMode('learn');
+                        }
+                    }, 1000);
+                }
+            } else {
+                btnLearn.classList.remove('hover');
+                if (btnTimers.learn) {
+                    clearInterval(btnTimers.learn);
+                    btnTimers.learn = null;
+                    btnCounts.learn = 0;
+                    countdownEl.style.display = 'none';
+                }
+            }
+        }
         
         // クイズ表示
         function displayQuiz() {
@@ -271,7 +857,6 @@
                 score++;
                 scoreEl.textContent = `スコア: ${score}/5`;
                 
-                // 正解エフェクト
                 choiceEl.classList.add('correct');
                 createParticles();
                 
@@ -281,7 +866,6 @@
                     displayQuiz();
                 }, 1500);
             } else {
-                // 不正解エフェクト
                 choiceEl.classList.add('wrong');
                 
                 setTimeout(() => {
@@ -300,7 +884,7 @@
                     particle.className = 'particle';
                     particle.style.left = Math.random() * 100 + '%';
                     particle.style.animationDelay = Math.random() * 0.5 + 's';
-                    document.getElementById('quiz-overlay').appendChild(particle);
+                    document.getElementById('ui-overlay').appendChild(particle);
                     
                     setTimeout(() => particle.remove(), 2000);
                 }, i * 20);
@@ -309,7 +893,6 @@
         
         // 結果表示
         function showResult() {
-            // クイズ終了、すぐに顔検出モード
             questionEl.textContent = '🎉 クリア！';
             choiceLeftEl.style.display = 'none';
             choiceRightEl.style.display = 'none';
@@ -319,16 +902,16 @@
                 createParticles();
             }
             
-            // 顔検出モードに切り替え
             setTimeout(() => {
-                isFaceMode = true;
                 initFaceDetection();
             }, 1000);
+            
+            setTimeout(() => {
+                switchMode('home');
+                choiceLeftEl.style.display = 'block';
+                choiceRightEl.style.display = 'block';
+            }, 5000);
         }
-        
-
-        
-
         
         // MediaPipe Hands
         function onResults(results) {
@@ -338,110 +921,286 @@
             
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 for (const landmarks of results.multiHandLandmarks) {
-                    drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 5});
-                    drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 2});
-                    
-                    // クイズモード時のみ判定処理
-                    if (!isFaceMode) {
-                    const canvasRect = canvasElement.getBoundingClientRect();
-                    const leftRect = choiceLeftEl.getBoundingClientRect();
-                    const rightRect = choiceRightEl.getBoundingClientRect();
-                    
-                    let leftHit = false;
-                    let rightHit = false;
-                    
-                    const checkPoints = [0, 4, 8, 12, 16, 20];
-                    
-                    for (const pointIndex of checkPoints) {
-                        const point = landmarks[pointIndex];
-                        const fingerPos = {
-                            x: (1 - point.x) * canvasRect.width,
-                            y: point.y * canvasRect.height
-                        };
-                        
-                        if (fingerPos.x >= leftRect.left && fingerPos.x <= leftRect.right &&
-                            fingerPos.y >= leftRect.top && fingerPos.y <= leftRect.bottom) {
-                            leftHit = true;
-                        }
-                        
-                        if (fingerPos.x >= rightRect.left && fingerPos.x <= rightRect.right &&
-                            fingerPos.y >= rightRect.top && fingerPos.y <= rightRect.bottom) {
-                            rightHit = true;
-                        }
+                    // 撮影モード以外は手の検出を表示
+                    if (currentMode !== 'photo') {
+                        drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 5});
+                        drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 2});
                     }
                     
-                    // 左の選択肢
-                    if (leftHit && canAnswer) {
-                        choiceLeftEl.classList.add('hover');
-                        if (!leftTimer) {
+                    // ホーム画面
+                    if (currentMode === 'home') {
+                        checkHomeButtons(landmarks);
+                    }
+                    
+                    // クイズモード
+                    if (currentMode === 'quiz') {
+                        const canvasRect = canvasElement.getBoundingClientRect();
+                        const leftRect = choiceLeftEl.getBoundingClientRect();
+                        const rightRect = choiceRightEl.getBoundingClientRect();
+                        
+                        let leftHit = false;
+                        let rightHit = false;
+                        
+                        const checkPoints = [0, 4, 8, 12, 16, 20];
+                        
+                        for (const pointIndex of checkPoints) {
+                            const point = landmarks[pointIndex];
+                            const fingerPos = {
+                                x: canvasRect.left + (1 - point.x) * canvasRect.width,
+                                y: canvasRect.top + point.y * canvasRect.height
+                            };
+                            
+                            if (fingerPos.x >= leftRect.left && fingerPos.x <= leftRect.right &&
+                                fingerPos.y >= leftRect.top && fingerPos.y <= leftRect.bottom) {
+                                leftHit = true;
+                            }
+                            
+                            if (fingerPos.x >= rightRect.left && fingerPos.x <= rightRect.right &&
+                                fingerPos.y >= rightRect.top && fingerPos.y <= rightRect.bottom) {
+                                rightHit = true;
+                            }
+                        }
+                        
+                        // 左の選択肢
+                        if (leftHit && canAnswer) {
+                            choiceLeftEl.classList.add('hover');
+                            if (!leftTimer) {
+                                leftCount = 0;
+                                leftTimer = setInterval(() => {
+                                    leftCount++;
+                                    const remaining = HOLD_TIME - leftCount;
+                                    countdownEl.textContent = remaining;
+                                    countdownEl.style.display = 'block';
+                                    
+                                    if (leftCount >= HOLD_TIME) {
+                                        clearInterval(leftTimer);
+                                        leftTimer = null;
+                                        countdownEl.style.display = 'none';
+                                        answerQuiz(true);
+                                    }
+                                }, 1000);
+                            }
+                        } else if (!leftTimer) {
+                            choiceLeftEl.classList.remove('hover');
+                        }
+                        
+                        if (leftTimer && !leftHit) {
+                            clearInterval(leftTimer);
+                            leftTimer = null;
                             leftCount = 0;
-                            leftTimer = setInterval(() => {
-                                leftCount++;
-                                const remaining = HOLD_TIME - leftCount;
-                                countdownEl.textContent = remaining;
-                                countdownEl.style.display = 'block';
-                                
-                                if (leftCount >= HOLD_TIME) {
-                                    clearInterval(leftTimer);
-                                    leftTimer = null;
-                                    countdownEl.style.display = 'none';
-                                    answerQuiz(true);
-                                }
-                            }, 1000);
+                            countdownEl.style.display = 'none';
+                            choiceLeftEl.classList.remove('hover');
                         }
-                    } else if (!leftTimer) {
-                        choiceLeftEl.classList.remove('hover');
-                    }
-                    
-                    if (leftTimer && !leftHit) {
-                        clearInterval(leftTimer);
-                        leftTimer = null;
-                        leftCount = 0;
-                        countdownEl.style.display = 'none';
-                        choiceLeftEl.classList.remove('hover');
-                    }
-                    
-                    // 右の選択肢
-                    if (rightHit && canAnswer) {
-                        choiceRightEl.classList.add('hover');
-                        if (!rightTimer) {
+                        
+                        // 右の選択肢
+                        if (rightHit && canAnswer) {
+                            choiceRightEl.classList.add('hover');
+                            if (!rightTimer) {
+                                rightCount = 0;
+                                rightTimer = setInterval(() => {
+                                    rightCount++;
+                                    const remaining = HOLD_TIME - rightCount;
+                                    countdownEl.textContent = remaining;
+                                    countdownEl.style.display = 'block';
+                                    
+                                    if (rightCount >= HOLD_TIME) {
+                                        clearInterval(rightTimer);
+                                        rightTimer = null;
+                                        countdownEl.style.display = 'none';
+                                        answerQuiz(false);
+                                    }
+                                }, 1000);
+                            }
+                        } else if (!rightTimer) {
+                            choiceRightEl.classList.remove('hover');
+                        }
+                        
+                        if (rightTimer && !rightHit) {
+                            clearInterval(rightTimer);
+                            rightTimer = null;
                             rightCount = 0;
-                            rightTimer = setInterval(() => {
-                                rightCount++;
-                                const remaining = HOLD_TIME - rightCount;
-                                countdownEl.textContent = remaining;
-                                countdownEl.style.display = 'block';
-                                
-                                if (rightCount >= HOLD_TIME) {
-                                    clearInterval(rightTimer);
-                                    rightTimer = null;
-                                    countdownEl.style.display = 'none';
-                                    answerQuiz(false);
-                                }
-                            }, 1000);
+                            countdownEl.style.display = 'none';
+                            choiceRightEl.classList.remove('hover');
                         }
-                    } else if (!rightTimer) {
-                        choiceRightEl.classList.remove('hover');
                     }
                     
-                    if (rightTimer && !rightHit) {
-                        clearInterval(rightTimer);
-                        rightTimer = null;
-                        rightCount = 0;
-                        countdownEl.style.display = 'none';
-                        choiceRightEl.classList.remove('hover');
-                    }
+                    // 知ろう！モード
+                    if (currentMode === 'learn') {
+                        checkSDGSelection(landmarks);
                     }
                 }
             }
             
-
-            
             canvasCtx.restore();
         }
         
-        // 顔検出初期化
+        // SDG選択チェック
+        function checkSDGSelection(landmarks) {
+            const canvasRect = canvasElement.getBoundingClientRect();
+            const checkPoints = [0, 4, 8, 12, 16, 20];
+            
+            let hitSDG = null;
+            
+            for (const pointIndex of checkPoints) {
+                const point = landmarks[pointIndex];
+                const fingerPos = {
+                    x: canvasRect.left + (1 - point.x) * canvasRect.width,
+                    y: canvasRect.top + point.y * canvasRect.height
+                };
+                
+                // 各SDG項目との衝突判定
+                for (const item of sdgItems) {
+                    const rect = item.getBoundingClientRect();
+                    if (fingerPos.x >= rect.left && fingerPos.x <= rect.right &&
+                        fingerPos.y >= rect.top && fingerPos.y <= rect.bottom) {
+                        hitSDG = item.getAttribute('data-sdg');
+                        break;
+                    }
+                }
+                
+                if (hitSDG) break;
+            }
+            
+            // ヒットした項目の処理
+            if (hitSDG) {
+                // 回転停止
+                isRotating = false;
+                
+                // ホバー効果
+                sdgItems.forEach(item => {
+                    if (item.getAttribute('data-sdg') === hitSDG) {
+                        item.classList.add('hover');
+                    } else {
+                        item.classList.remove('hover');
+                    }
+                });
+                
+                // 1秒ホールドで選択
+                if (selectedSDG !== hitSDG) {
+                    if (selectTimer) {
+                        clearInterval(selectTimer);
+                    }
+                    selectedSDG = hitSDG;
+                    selectCount = 0;
+                    selectTimer = setInterval(() => {
+                        selectCount++;
+                        countdownEl.textContent = 1 - selectCount + 1;
+                        countdownEl.style.display = 'block';
+                        
+                        if (selectCount >= 1) {
+                            clearInterval(selectTimer);
+                            selectTimer = null;
+                            countdownEl.style.display = 'none';
+                            showSDGDetail(hitSDG);
+                        }
+                    }, 1000);
+                }
+            } else {
+                // ヒットなし - 回転再開
+                if (!isRotating && learnDetail.style.display !== 'block') {
+                    isRotating = true;
+                }
+                
+                sdgItems.forEach(item => item.classList.remove('hover'));
+                
+                if (selectTimer) {
+                    clearInterval(selectTimer);
+                    selectTimer = null;
+                    selectCount = 0;
+                    countdownEl.style.display = 'none';
+                }
+                
+                selectedSDG = null;
+            }
+        }
+        
+        // SDG詳細表示
+        function showSDGDetail(sdgNum) {
+            const data = sdgData[sdgNum];
+            if (!data) return;
+            
+            detailTitle.textContent = data.title;
+            detailContent.textContent = data.content;
+            learnDetail.style.display = 'block';
+            
+            // 詳細表示中は回転停止
+            isRotating = false;
+        }
+        
+        // 知ろう！戻るボタン
+        learnBackBtn.addEventListener('click', () => {
+            stopRotation();
+            if (selectTimer) {
+                clearInterval(selectTimer);
+                selectTimer = null;
+                countdownEl.style.display = 'none';
+            }
+            switchMode('home');
+        });
+        
+        // 詳細閉じるボタン
+        closeDetailBtn.addEventListener('click', () => {
+            learnDetail.style.display = 'none';
+            isRotating = true;
+        });
+        
+        // 撮影ボタンクリック
+        captureBtn.addEventListener('click', () => {
+            if (isCapturing) return;
+            
+            isCapturing = true;
+            captureCount = 0;
+            
+            // カウントダウン表示
+            countdownEl.textContent = CAPTURE_TIME;
+            countdownEl.style.display = 'block';
+            
+            captureTimer = setInterval(() => {
+                captureCount++;
+                const remaining = CAPTURE_TIME - captureCount;
+                countdownEl.textContent = remaining;
+                
+                if (captureCount >= CAPTURE_TIME) {
+                    clearInterval(captureTimer);
+                    captureTimer = null;
+                    countdownEl.style.display = 'none';
+                    isCapturing = false;
+                    
+                    const link = document.createElement('a');
+                    link.download = 'atc-photo.png';
+                    link.href = canvasElement.toDataURL();
+                    link.click();
+                }
+            }, 1000);
+        });
+        
+        // 戻るボタンクリック
+        backBtn.addEventListener('click', () => {
+            if (captureTimer) {
+                clearInterval(captureTimer);
+                captureTimer = null;
+                countdownEl.style.display = 'none';
+                isCapturing = false;
+            }
+            switchMode('home');
+        });
+        
+        // エフェクトボタンクリック
+        Object.entries(effectButtons).forEach(([key, btn]) => {
+            btn.addEventListener('click', () => {
+                Object.values(effectButtons).forEach(b => b.classList.remove('active'));
+                if (activeEffect === key) {
+                    activeEffect = null;
+                } else {
+                    activeEffect = key;
+                    btn.classList.add('active');
+                }
+            });
+        });
+
         function initFaceDetection() {
+            if (faceMesh) return;
+            
             faceMesh = new FaceMesh({
                 locateFile: (file) => {
                     return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/${file}`;
@@ -460,25 +1219,155 @@
         
         // 顔検出結果処理
         function onFaceResults(results) {
-            canvasCtx.save();
-            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-            
-            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-                for (const landmarks of results.multiFaceLandmarks) {
-                    // 顔のランドマークを描画
-                    drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, {color: '#C0C0C070', lineWidth: 1});
-                    drawConnectors(canvasCtx, landmarks, FACEMESH_RIGHT_EYE, {color: '#FF3030'});
-                    drawConnectors(canvasCtx, landmarks, FACEMESH_LEFT_EYE, {color: '#30FF30'});
-                    drawConnectors(canvasCtx, landmarks, FACEMESH_FACE_OVAL, {color: '#E0E0E0'});
-                    drawConnectors(canvasCtx, landmarks, FACEMESH_LIPS, {color: '#E0E0E0'});
+            if (currentMode === 'quiz') {
+                if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                    for (const landmarks of results.multiFaceLandmarks) {
+                        drawConnectors(canvasCtx, landmarks, FACEMESH_TESSELATION, {color: '#C0C0C070', lineWidth: 1});
+                        drawConnectors(canvasCtx, landmarks, FACEMESH_RIGHT_EYE, {color: '#FF3030'});
+                        drawConnectors(canvasCtx, landmarks, FACEMESH_LEFT_EYE, {color: '#30FF30'});
+                        drawConnectors(canvasCtx, landmarks, FACEMESH_FACE_OVAL, {color: '#E0E0E0'});
+                        drawConnectors(canvasCtx, landmarks, FACEMESH_LIPS, {color: '#E0E0E0'});
+                    }
+                }
+            } else if (currentMode === 'photo' && activeEffect) {
+                if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                    const landmarks = results.multiFaceLandmarks[0];
+                    drawEffect(landmarks);
                 }
             }
-            
-            canvasCtx.restore();
         }
         
-
+        // エフェクト描画
+        function drawEffect(landmarks) {
+            const leftEye = landmarks[33];
+            const rightEye = landmarks[263];
+            const nose = landmarks[1];
+            const forehead = landmarks[10];
+            
+            const canvasW = canvasElement.width;
+            const canvasH = canvasElement.height;
+            
+            if (activeEffect === 'sunglasses') {
+                const eyeDistance = Math.abs(rightEye.x - leftEye.x) * canvasW;
+                const centerX = ((leftEye.x + rightEye.x) / 2) * canvasW;
+                const centerY = (leftEye.y + rightEye.y) / 2 * canvasH;
+                
+                canvasCtx.fillStyle = '#000';
+                canvasCtx.fillRect(centerX - eyeDistance * 0.7, centerY - 30, eyeDistance * 0.6, 50);
+                canvasCtx.fillRect(centerX + eyeDistance * 0.1, centerY - 30, eyeDistance * 0.6, 50);
+                canvasCtx.strokeStyle = '#000';
+                canvasCtx.lineWidth = 5;
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(centerX - eyeDistance * 0.7, centerY);
+                canvasCtx.lineTo(centerX + eyeDistance * 0.7, centerY);
+                canvasCtx.stroke();
+            } else if (activeEffect === 'catEars') {
+                const foreheadX = forehead.x * canvasW;
+                const foreheadY = forehead.y * canvasH;
+                
+                canvasCtx.fillStyle = '#FFB6C1';
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(foreheadX - 80, foreheadY - 20);
+                canvasCtx.lineTo(foreheadX - 120, foreheadY - 100);
+                canvasCtx.lineTo(foreheadX - 40, foreheadY - 60);
+                canvasCtx.closePath();
+                canvasCtx.fill();
+                
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(foreheadX + 80, foreheadY - 20);
+                canvasCtx.lineTo(foreheadX + 120, foreheadY - 100);
+                canvasCtx.lineTo(foreheadX + 40, foreheadY - 60);
+                canvasCtx.closePath();
+                canvasCtx.fill();
+            } else if (activeEffect === 'flower') {
+                const foreheadX = forehead.x * canvasW;
+                const foreheadY = forehead.y * canvasH;
+                
+                for (let i = 0; i < 8; i++) {
+                    const angle = (Math.PI * 2 * i) / 8;
+                    const x = foreheadX + Math.cos(angle) * 40;
+                    const y = foreheadY - 80 + Math.sin(angle) * 40;
+                    
+                    canvasCtx.fillStyle = '#FF69B4';
+                    canvasCtx.beginPath();
+                    canvasCtx.arc(x, y, 15, 0, Math.PI * 2);
+                    canvasCtx.fill();
+                }
+                
+                canvasCtx.fillStyle = '#FFD700';
+                canvasCtx.beginPath();
+                canvasCtx.arc(foreheadX, foreheadY - 80, 20, 0, Math.PI * 2);
+                canvasCtx.fill();
+            } else if (activeEffect === 'sparkle') {
+                const leftEyeX = leftEye.x * canvasW;
+                const leftEyeY = leftEye.y * canvasH;
+                const rightEyeX = rightEye.x * canvasW;
+                const rightEyeY = rightEye.y * canvasH;
+                
+                drawStar(canvasCtx, leftEyeX - 40, leftEyeY - 40, 15, '#FFD700');
+                drawStar(canvasCtx, rightEyeX + 40, rightEyeY - 40, 15, '#FFD700');
+                drawStar(canvasCtx, leftEyeX - 50, leftEyeY + 30, 10, '#FFA500');
+                drawStar(canvasCtx, rightEyeX + 50, rightEyeY + 30, 10, '#FFA500');
+            } else if (activeEffect === 'heart') {
+                const leftCheek = landmarks[330];
+                const rightCheek = landmarks[101];
+                
+                const leftX = leftCheek.x * canvasW;
+                const leftY = leftCheek.y * canvasH;
+                const rightX = rightCheek.x * canvasW;
+                const rightY = rightCheek.y * canvasH;
+                
+                drawHeart(canvasCtx, leftX - 30, leftY, 20, '#FF1493');
+                drawHeart(canvasCtx, rightX + 30, rightY, 20, '#FF1493');
+            } else if (activeEffect === 'rainbow') {
+                canvasCtx.globalAlpha = 0.3;
+                const gradient = canvasCtx.createLinearGradient(0, 0, canvasW, 0);
+                gradient.addColorStop(0, 'red');
+                gradient.addColorStop(0.17, 'orange');
+                gradient.addColorStop(0.33, 'yellow');
+                gradient.addColorStop(0.5, 'green');
+                gradient.addColorStop(0.67, 'blue');
+                gradient.addColorStop(0.83, 'indigo');
+                gradient.addColorStop(1, 'violet');
+                canvasCtx.fillStyle = gradient;
+                canvasCtx.fillRect(0, 0, canvasW, canvasH);
+                canvasCtx.globalAlpha = 1.0;
+            }
+        }
+        
+        function drawStar(ctx, cx, cy, size, color) {
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = color;
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
+                const x = cx + Math.cos(angle) * size;
+                const y = cy + Math.sin(angle) * size;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+                const innerAngle = angle + Math.PI / 5;
+                const innerX = cx + Math.cos(innerAngle) * (size / 2);
+                const innerY = cy + Math.sin(innerAngle) * (size / 2);
+                ctx.lineTo(innerX, innerY);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+        
+        function drawHeart(ctx, cx, cy, size, color) {
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy + size / 4);
+            ctx.bezierCurveTo(cx, cy, cx - size / 2, cy - size / 2, cx, cy - size);
+            ctx.bezierCurveTo(cx + size / 2, cy - size / 2, cx, cy, cx, cy + size / 4);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
         
         const hands = new Hands({
             locateFile: (file) => {
@@ -496,8 +1385,11 @@
         
         const camera = new Camera(videoElement, {
             onFrame: async () => {
-                if (isFaceMode && faceMesh) {
-                    await faceMesh.send({image: videoElement});
+                if ((currentMode === 'quiz' || currentMode === 'photo') && faceMesh) {
+                    await Promise.all([
+                        faceMesh.send({image: videoElement}),
+                        hands.send({image: videoElement})
+                    ]);
                 } else {
                     await hands.send({image: videoElement});
                 }
@@ -506,9 +1398,7 @@
             height: 720
         });
         
-        camera.start().then(() => {
-            displayQuiz();
-        });
+        camera.start();
     </script>
 </body>
 </html>
